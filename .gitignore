@@ -1,0 +1,98 @@
+# =============================
+# Python
+# =============================
+__pycache__/
+*.py[cod]
+*.pyc
+*.pyo
+*.pyd
+*.so
+
+# Virtual environments
+venv/
+.venv/
+env/
+ENV/
+*.env
+*.venv
+
+# Jupyter Notebooks
+.ipynb_checkpoints/
+.jupyter/
+*.nbconvert.ipynb
+
+# =============================
+# Machine Learning Artifacts
+# =============================
+
+# Cache and checkpoints
+checkpoints/
+runs/
+logs/
+*.log
+New Folder/
+
+# If using Git LFS, pth files will be tracked automatically
+# git lfs track "*.pth"
+
+# TensorBoard
+events.out.tfevents.*
+
+# Numpy
+*.npy
+*.npz
+
+# =============================
+# Datasets (Don't upload raw datasets)
+# =============================
+data/
+dataset/
+datasets/
+*.csv
+*.zip
+*.tar.gz
+*.h5
+*.hdf5
+
+# =============================
+# OS / Editor Files
+# =============================
+
+# macOS
+.DS_Store
+.AppleDouble
+.AppleDB
+.AppleDesktop
+*.swp
+
+# Windows
+Thumbs.db
+Desktop.ini
+
+# VSCode
+.vscode/
+.history/
+
+# PyCharm / JetBrains
+.idea/
+*.iml
+
+# =============================
+# Flask / App Artifacts
+# =============================
+instance/
+uploads/
+*.sqlite
+*.db
+
+# =============================
+# Misc
+# =============================
+tmp/
+temp/
+*.tmp
+*.bak
+
+# Ignore compiled HTML reports
+report.html
+reports/

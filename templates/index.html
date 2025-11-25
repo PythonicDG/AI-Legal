@@ -1,0 +1,776 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>⚖️ AI Legal Case Analyzer</title>
+
+  <style>
+    :root {
+      --primary-color: #1a3c6e;
+      --primary-light: #2a4c7e;
+      --secondary-color: #8b0000;
+      --accent-color: #d4af37;
+      --light-bg: #f8f9fa;
+      --dark-text: #2c3e50;
+      --light-text: #ffffff;
+      --border-radius: 8px;
+      --box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+      --transition: all 0.3s ease;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: "Georgia", "Times New Roman", serif;
+      background: linear-gradient(135deg, #f5f7fa 0%, #e4e8ed 100%);
+      color: var(--dark-text);
+      line-height: 1.6;
+      min-height: 100vh;
+      display: flex;
+      justify-content: center;
+      align-items: flex-start;
+      padding: 20px;
+    }
+
+    .container {
+      background: #fff;
+      padding: 40px;
+      border-radius: var(--border-radius);
+      box-shadow: var(--box-shadow);
+      max-width: 1000px;
+      width: 100%;
+      text-align: center;
+      border-top: 5px solid var(--primary-color);
+      position: relative;
+    }
+
+    .container::before {
+      content: "";
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 5px;
+      background: linear-gradient(90deg, var(--primary-color) 0%, var(--secondary-color) 50%, var(--accent-color) 100%);
+    }
+
+    h1 {
+      font-size: 2.5em;
+      color: var(--primary-color);
+      margin-bottom: 10px;
+      font-weight: 700;
+      letter-spacing: 1px;
+    }
+
+    .subtitle {
+      font-size: 1.2em;
+      color: var(--secondary-color);
+      margin-bottom: 30px;
+      font-style: italic;
+    }
+
+    .input-section {
+      margin-bottom: 30px;
+      text-align: left;
+    }
+
+    .section-title {
+      font-size: 1.3em;
+      color: var(--primary-color);
+      margin-bottom: 15px;
+      padding-bottom: 8px;
+      border-bottom: 2px solid var(--accent-color);
+      display: inline-block;
+    }
+
+    label {
+      font-weight: 600;
+      display: block;
+      margin-bottom: 10px;
+      color: var(--dark-text);
+    }
+
+    .file-input-wrapper {
+      position: relative;
+      overflow: hidden;
+      display: inline-block;
+      width: 100%;
+      margin-bottom: 20px;
+    }
+
+    .file-input-wrapper input[type=file] {
+      position: absolute;
+      left: 0;
+      top: 0;
+      opacity: 0;
+      width: 100%;
+      height: 100%;
+      cursor: pointer;
+    }
+
+    .file-input-button {
+      display: block;
+      padding: 12px 20px;
+      background: var(--light-bg);
+      border: 2px dashed #ccc;
+      border-radius: var(--border-radius);
+      text-align: center;
+      color: #666;
+      transition: var(--transition);
+    }
+
+    .file-input-button:hover {
+      border-color: var(--primary-color);
+      color: var(--primary-color);
+      background: #f0f4f8;
+    }
+
+    .file-name {
+      margin-top: 8px;
+      font-size: 0.9em;
+      color: #666;
+    }
+
+    textarea {
+      width: 100%;
+      padding: 15px;
+      border: 1px solid #ccc;
+      border-radius: var(--border-radius);
+      resize: vertical;
+      font-size: 1em;
+      font-family: inherit;
+      transition: var(--transition);
+      min-height: 150px;
+    }
+
+    textarea:focus {
+      outline: none;
+      border-color: var(--primary-color);
+      box-shadow: 0 0 0 2px rgba(26, 60, 110, 0.2);
+    }
+
+    .divider {
+      display: flex;
+      align-items: center;
+      margin: 20px 0;
+    }
+
+    .divider::before,
+    .divider::after {
+      content: "";
+      flex: 1;
+      border-bottom: 1px solid #ddd;
+    }
+
+    .divider-text {
+      padding: 0 15px;
+      color: #666;
+      font-size: 0.9em;
+    }
+
+    .buttons {
+      margin-top: 30px;
+    }
+
+    button {
+      background: var(--primary-color);
+      border: none;
+      color: var(--light-text);
+      padding: 14px 30px;
+      border-radius: var(--border-radius);
+      font-size: 1.1em;
+      font-weight: 600;
+      cursor: pointer;
+      transition: var(--transition);
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    }
+
+    button:hover:not(:disabled) {
+      background: var(--primary-light);
+      transform: translateY(-2px);
+      box-shadow: 0 6px 8px rgba(0, 0, 0, 0.15);
+    }
+
+    button:active:not(:disabled) {
+      transform: translateY(0);
+    }
+
+    button:disabled {
+      background: #9eb6d3;
+      cursor: not-allowed;
+      transform: none;
+      box-shadow: none;
+    }
+
+    #output {
+      margin-top: 40px;
+      text-align: left;
+      background: var(--light-bg);
+      border-radius: var(--border-radius);
+      padding: 30px;
+      box-shadow: inset 0 0 5px rgba(0, 0, 0, 0.05);
+      border-left: 4px solid var(--primary-color);
+    }
+
+    .output-section {
+      margin-bottom: 30px;
+    }
+
+    .output-section:last-child {
+      margin-bottom: 0;
+    }
+
+    .output-title {
+      font-size: 1.4em;
+      color: var(--primary-color);
+      margin-bottom: 15px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    pre {
+      white-space: pre-wrap;
+      word-wrap: break-word;
+      font-family: "Courier New", monospace;
+      background: #fff;
+      padding: 20px;
+      border-radius: var(--border-radius);
+      border: 1px solid #e1e1e1;
+      line-height: 1.5;
+    }
+
+    .prediction-box {
+      padding: 20px;
+      background: #fff;
+      border-radius: var(--border-radius);
+      border: 1px solid #e1e1e1;
+      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+    }
+
+    .prediction-item {
+      margin-bottom: 15px;
+      display: flex;
+      align-items: center;
+    }
+
+    .prediction-item:last-child {
+      margin-bottom: 0;
+    }
+
+    .prediction-label {
+      font-weight: 600;
+      min-width: 120px;
+      color: var(--primary-color);
+    }
+
+    .confidence-bar {
+      height: 10px;
+      background: #e0e0e0;
+      border-radius: 5px;
+      overflow: hidden;
+      margin-top: 5px;
+      width: 100%;
+    }
+
+    .confidence-fill {
+      height: 100%;
+      background: linear-gradient(90deg, #4CAF50, #8BC34A);
+      border-radius: 5px;
+      transition: width 1s ease;
+      width: 0%;
+    }
+
+    .case-box {
+      padding: 20px;
+      background: #fff;
+      border: 1px solid #e1e1e1;
+      border-radius: var(--border-radius);
+      margin-bottom: 20px;
+      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+      transition: var(--transition);
+    }
+
+    .case-box:hover {
+      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+      transform: translateY(-2px);
+    }
+
+    .case-box h3 {
+      color: var(--primary-color);
+      margin-bottom: 10px;
+    }
+
+    .case-box p {
+      margin-bottom: 15px;
+      color: #555;
+    }
+
+    .case-actions {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+
+    .case-link {
+      color: var(--primary-color);
+      text-decoration: none;
+      font-weight: 600;
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      transition: var(--transition);
+    }
+
+    .case-link:hover {
+      color: var(--secondary-color);
+      text-decoration: underline;
+    }
+
+    .analyze-btn {
+      background: var(--secondary-color);
+      padding: 8px 15px;
+      font-size: 0.9em;
+    }
+
+    .analyze-btn:hover:not(:disabled) {
+      background: #6a0000;
+    }
+
+    /* Loading Screen - Fixed */
+    #loading-screen {
+      display: none;
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(255, 255, 255, 0.95);
+      z-index: 9999;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      backdrop-filter: blur(5px);
+    }
+
+    .loading-content {
+      text-align: center;
+      max-width: 500px;
+      padding: 40px;
+      background: #fff;
+      border-radius: var(--border-radius);
+      box-shadow: var(--box-shadow);
+      border-top: 4px solid var(--primary-color);
+    }
+
+
+    @keyframes legal-spin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+
+    .loading-text {
+      font-size: 1.3em;
+      color: var(--primary-color);
+      margin-bottom: 10px;
+      font-weight: 600;
+    }
+
+    .loading-subtext {
+      color: #666;
+      margin-bottom: 25px;
+      line-height: 1.5;
+    }
+
+    .progress-bar {
+      height: 6px;
+      background: #e0e0e0;
+      border-radius: 3px;
+      overflow: hidden;
+      margin-top: 20px;
+    }
+
+    .progress-fill {
+      height: 100%;
+      background: linear-gradient(90deg, var(--primary-color), var(--secondary-color));
+      border-radius: 3px;
+      width: 0%;
+      animation: progress 2s infinite;
+    }
+
+    @keyframes progress {
+      0% { width: 0%; }
+      50% { width: 70%; }
+      100% { width: 100%; }
+    }
+
+    .hidden {
+      display: none;
+    }
+
+    /* Status indicators */
+    .status-indicator {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 6px 12px;
+      border-radius: 20px;
+      font-size: 0.9em;
+      font-weight: 600;
+    }
+    
+    .status-favorable {
+      background-color: #e8f5e9;
+      color: #2e7d32;
+    }
+    
+    .status-unfavorable {
+      background-color: #ffebee;
+      color: #c62828;
+    }
+    
+    .status-neutral {
+      background-color: #fff3e0;
+      color: #ef6c00;
+    }
+
+    /* Landscape optimization */
+    @media (min-width: 768px) and (orientation: landscape) {
+      body {
+        align-items: center;
+        padding: 20px;
+      }
+      
+      .container {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        grid-gap: 40px;
+        align-items: start;
+        text-align: left;
+      }
+      
+      .header-section {
+        grid-column: 1 / -1;
+        text-align: center;
+      }
+      
+      .input-section {
+        margin-bottom: 0;
+      }
+      
+      #output {
+        grid-column: 1 / -1;
+      }
+      
+      .similar-cases-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+        gap: 20px;
+      }
+      
+      .case-box {
+        margin-bottom: 0;
+      }
+    }
+
+    /* Mobile responsiveness */
+    @media (max-width: 767px) {
+      body {
+        padding: 10px;
+      }
+      
+      .container {
+        padding: 20px;
+      }
+      
+      h1 {
+        font-size: 2em;
+      }
+      
+      .case-actions {
+        flex-direction: column;
+      }
+      
+      button {
+        width: 100%;
+        justify-content: center;
+      }
+      
+      .loading-content {
+        padding: 30px 20px;
+        margin: 0 15px;
+      }
+    }
+  </style>
+</head>
+
+<body>
+  <div class="container">
+    <div class="header-section">
+      <h1>⚖️ AI Legal Case Analyzer</h1>
+      <p class="subtitle">Advanced analysis for legal professionals</p>
+    </div>
+
+    <div class="input-section">
+      <h2 class="section-title">Case Input</h2>
+      
+      <label for="pdf-upload">Upload Legal Document (PDF)</label>
+      <div class="file-input-wrapper">
+        <input type="file" id="pdf-upload" name="pdf" accept="application/pdf">
+        <div class="file-input-button">
+          <span>Choose PDF File</span>
+        </div>
+      </div>
+      <div class="file-name" id="file-name">No file selected</div>
+
+      <div class="divider">
+        <div class="divider-text">OR</div>
+      </div>
+
+      <label for="case-text">Enter Case Text</label>
+      <textarea id="case-text" name="text" rows="10" placeholder="Paste your case text here..."></textarea>
+    </div>
+
+    <div class="buttons">
+      <button type="button" id="analyze-btn">
+        <span>🔍 Analyze Case</span>
+      </button>
+    </div>
+
+    <div id="output" class="hidden">
+      <div class="output-section">
+        <h2 class="output-title">📋 Case Summary</h2>
+        <pre id="result"></pre>
+      </div>
+
+      <div class="output-section">
+        <h2 class="output-title">⚖️ Predicted Outcome</h2>
+        <div class="prediction-box">
+          <div class="prediction-item">
+            <span class="prediction-label">Prediction:</span>
+            <span id="pred"></span>
+          </div>
+          <div class="prediction-item">
+            <span class="prediction-label">Confidence:</span>
+            <span id="conf"></span>
+          </div>
+          <div class="confidence-bar">
+            <div class="confidence-fill" id="confidence-bar"></div>
+          </div>
+        </div>
+      </div>
+
+      <div id="similar-cases" class="output-section hidden">
+        <h2 class="output-title">📚 Similar Cases</h2>
+        <div class="similar-cases-grid" id="cases-list"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Loading Screen - Fixed -->
+  <div id="loading-screen">
+    <div class="loading-content">
+      <h3 class="loading-text">Analyzing Legal Case</h3>
+      <p class="loading-subtext">Processing document and extracting key legal elements...</p>
+      <div class="progress-bar">
+        <div class="progress-fill"></div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // GLOBAL DOM REFERENCES
+    const resultBox = document.getElementById("result");
+    const outputDiv = document.getElementById("output");
+    const loadingScreen = document.getElementById("loading-screen");
+    const analyzeBtn = document.getElementById("analyze-btn");
+    const casesList = document.getElementById("cases-list");
+    const pdfUpload = document.getElementById("pdf-upload");
+    const fileName = document.getElementById("file-name");
+    const confidenceBar = document.getElementById("confidence-bar");
+
+    // Update file name when a file is selected
+    pdfUpload.addEventListener('change', function() {
+      if (this.files && this.files.length > 0) {
+        fileName.textContent = this.files[0].name;
+      } else {
+        fileName.textContent = 'No file selected';
+      }
+    });
+
+    // -------------------------------
+    // MAIN ANALYZE BUTTON
+    // -------------------------------
+    async function sendRequest() {
+        analyzeBtn.disabled = true;
+        loadingScreen.style.display = 'flex';
+        resultBox.textContent = "";
+        outputDiv.classList.add("hidden");
+
+        const formData = new FormData();
+        
+        // Add PDF if selected
+        if (pdfUpload.files.length > 0) {
+            formData.append("pdf", pdfUpload.files[0]);
+        }
+        
+        // Add text if provided
+        const caseText = document.getElementById("case-text").value;
+        if (caseText) {
+            formData.append("text", caseText);
+        }
+
+        // Validate that at least one input is provided
+        if (pdfUpload.files.length === 0 && !caseText) {
+            alert("Please upload a PDF file or enter case text.");
+            analyzeBtn.disabled = false;
+            loadingScreen.style.display = 'none';
+            return;
+        }
+
+        try {
+            const res = await fetch("/analyze", {
+                method: "POST",
+                body: formData
+            });
+
+            const data = await res.json();
+
+            if (data.error) {
+                resultBox.textContent = "Error: " + data.error;
+            } else {
+                resultBox.textContent = data.summary;
+                
+                // Set prediction with status indicator
+                const predictionElement = document.getElementById("pred");
+                const prediction = data.prediction || "";
+                predictionElement.textContent = prediction;
+                
+                // Add status indicator based on prediction
+                if (prediction.toLowerCase().includes("favorable") || 
+                    prediction.toLowerCase().includes("positive") ||
+                    prediction.toLowerCase().includes("win")) {
+                  predictionElement.innerHTML = `<span class="status-indicator status-favorable">${prediction}</span>`;
+                } else if (prediction.toLowerCase().includes("unfavorable") || 
+                          prediction.toLowerCase().includes("negative") ||
+                          prediction.toLowerCase().includes("lose")) {
+                  predictionElement.innerHTML = `<span class="status-indicator status-unfavorable">${prediction}</span>`;
+                } else {
+                  predictionElement.innerHTML = `<span class="status-indicator status-neutral">${prediction}</span>`;
+                }
+                
+                document.getElementById("conf").textContent = data.confidence;
+                
+                // Update confidence bar
+                const confidenceValue = parseFloat(data.confidence) || 0;
+                confidenceBar.style.width = `${confidenceValue}%`;
+
+                // Build similar cases list
+                let html = "";
+                if (data.similar_cases && data.similar_cases.length > 0) {
+                    data.similar_cases.forEach(c => {
+                        html += `
+                            <div class="case-box">
+                                <h3>${c.title}</h3>
+                                <p>${c.snippet}</p>
+                                <div class="case-actions">
+                                    <a href="${c.link}" class="case-link" target="_blank">
+                                        📄 Read Full Case
+                                    </a>
+                                    <button class="analyze-btn" onclick="analyzeSuggestedCase('${encodeURIComponent(c.link)}')">
+                                        🔍 Analyze This Case
+                                    </button>
+                                </div>
+                            </div>
+                        `;
+                    });
+                    casesList.innerHTML = html;
+                    document.getElementById("similar-cases").classList.remove("hidden");
+                } else {
+                    document.getElementById("similar-cases").classList.add("hidden");
+                }
+            }
+
+            outputDiv.classList.remove("hidden");
+
+        } catch (err) {
+            resultBox.textContent = "Error: " + err.message;
+        } finally {
+            loadingScreen.style.display = 'none';
+            analyzeBtn.disabled = false;
+        }
+    }
+
+    // -------------------------------
+    // ANALYZE SUGGESTED CASE BUTTON
+    // -------------------------------
+    async function analyzeSuggestedCase(url) {
+        url = decodeURIComponent(url);
+
+        loadingScreen.style.display = 'flex';
+
+        try {
+            const res = await fetch("/analyze_url", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ url: url })
+            });
+
+            const data = await res.json();
+
+            if (data.error) {
+                alert("Error: " + data.error);
+                return;
+            }
+
+            resultBox.textContent = data.summary;
+            
+            // Set prediction with status indicator
+            const predictionElement = document.getElementById("pred");
+            const prediction = data.prediction || "";
+            predictionElement.textContent = prediction;
+            
+            // Add status indicator based on prediction
+            if (prediction.toLowerCase().includes("favorable") || 
+                prediction.toLowerCase().includes("positive") ||
+                prediction.toLowerCase().includes("win")) {
+              predictionElement.innerHTML = `<span class="status-indicator status-favorable">${prediction}</span>`;
+            } else if (prediction.toLowerCase().includes("unfavorable") || 
+                      prediction.toLowerCase().includes("negative") ||
+                      prediction.toLowerCase().includes("lose")) {
+              predictionElement.innerHTML = `<span class="status-indicator status-unfavorable">${prediction}</span>`;
+            } else {
+              predictionElement.innerHTML = `<span class="status-indicator status-neutral">${prediction}</span>`;
+            }
+            
+            document.getElementById("conf").textContent = data.confidence;
+            
+            // Update confidence bar
+            const confidenceValue = parseFloat(data.confidence) || 0;
+            confidenceBar.style.width = `${confidenceValue}%`;
+
+            outputDiv.classList.remove("hidden");
+
+        } catch (err) {
+            alert("Error analyzing case: " + err.message);
+        } finally {
+            loadingScreen.style.display = 'none';
+        }
+    }
+
+    // Make function global for onclick=""
+    window.analyzeSuggestedCase = analyzeSuggestedCase;
+
+    analyzeBtn.addEventListener("click", sendRequest);
+  </script>
+</body>
+</html>
