@@ -8,6 +8,7 @@ from transformers import (
     AutoTokenizer, AutoModelForSequenceClassification
 )
 from bs4 import BeautifulSoup
+import re
 
 
 app = Flask(__name__)
@@ -17,13 +18,47 @@ device = "cuda" if torch.cuda.is_available() else "cpu"
 MAX_CHARS = 8000
 SUMMARY_PRED_CHARS = 2000
 
+def clean_legal_text(text):
+    if not text or not isinstance(text, str):
+        return ""
 
+    patterns = [
+        r"\b[A-Z\s]+J\.,",
+        r"Leave Granted\.?",
+        r"THE APPEAL\s*\d*\.*",
+        r"IN THE SUPREME COURT OF.*",
+        r"Page \d+ of \d+",
+        r"\.{4,}",
+    ]
+
+    for p in patterns:
+        text = re.sub(p, " ", text, flags=re.IGNORECASE)
+
+    text = re.sub(r"\s+", " ", text)
+    return text.strip()
+
+    
 def extract_text_from_pdf(pdf_file):
     text = ""
     with fitz.open(stream=pdf_file.read(), filetype="pdf") as doc:
         for page in doc:
             text += page.get_text("text")
     return text.strip()[:MAX_CHARS]
+
+def chunk_text(text, max_tokens=450):
+    words = text.split()
+    chunks, current = [], []
+
+    for w in words:
+        current.append(w)
+        if len(current) >= max_tokens:
+            chunks.append(" ".join(current))
+            current = []
+
+    if current:
+        chunks.append(" ".join(current))
+
+    return chunks
 
 
 t5_tokenizer = T5Tokenizer.from_pretrained("t5-base")
@@ -33,28 +68,35 @@ if device == "cuda":
     t5_model = t5_model.half()
 
 def summarize_text(text):
-    input_text = (
-        "summarize in a detailed, comprehensive manner, "
-        "covering all key points and explanations: "
-        + text.replace("\n", " ")
-    )
+    text = clean_legal_text(text)
+    chunks = chunk_text(text)
 
-    inputs = t5_tokenizer.encode(
-        input_text,
-        return_tensors="pt",
-        max_length=512,
-        truncation=True
-    ).to(device)
+    summaries = []
 
-    summary_ids = t5_model.generate(
-        inputs,
-        max_length=500,
-        min_length=150,
-        num_beams=2,
-        early_stopping=True
-    )
+    for chunk in chunks[:2]:
+        input_text = "summarize: " + chunk
+        inputs = t5_tokenizer.encode(
+            input_text,
+            return_tensors="pt",
+            max_length=512,
+            truncation=True
+        ).to(device)
 
-    return t5_tokenizer.decode(summary_ids[0], skip_special_tokens=True)
+        ids = t5_model.generate(
+            inputs,
+            max_length=140,
+            min_length=60,
+            num_beams=2,
+            repetition_penalty=1.5,
+            no_repeat_ngram_size=3
+        )
+
+        summaries.append(
+            t5_tokenizer.decode(ids[0], skip_special_tokens=True)
+        )
+
+    return " ".join(summaries)
+
 
 
 GOOGLE_API_KEY = "AIzaSyB-80vdEJEAY5NG_y7GdiUGNQ01B6aA6pg"
